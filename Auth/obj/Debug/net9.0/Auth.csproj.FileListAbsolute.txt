@@ -1,0 +1,12 @@
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\bin\Debug\net9.0\Auth.deps.json
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\bin\Debug\net9.0\Auth.dll
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\bin\Debug\net9.0\Auth.pdb
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\obj\Debug\net9.0\Auth.csproj.AssemblyReference.cache
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\obj\Debug\net9.0\Auth.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\obj\Debug\net9.0\Auth.AssemblyInfoInputs.cache
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\obj\Debug\net9.0\Auth.AssemblyInfo.cs
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\obj\Debug\net9.0\Auth.csproj.CoreCompileInputs.cache
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\obj\Debug\net9.0\Auth.dll
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\obj\Debug\net9.0\refint\Auth.dll
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\obj\Debug\net9.0\Auth.pdb
+C:\Users\aakindeko\RiderProjects\WebApplication3\Auth\obj\Debug\net9.0\ref\Auth.dll

@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hoba-backend", "hoba-backend\hoba-backend.csproj", "{87AA31B8-7E35-4634-917D-849818A3B496}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Auth", "Auth\Auth.csproj", "{54842B99-E4A6-4427-A353-F6A6A41F5537}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DB", "DB\DB.csproj", "{77825FDB-D7D0-42B2-B38A-51426958ED8A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87AA31B8-7E35-4634-917D-849818A3B496}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87AA31B8-7E35-4634-917D-849818A3B496}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87AA31B8-7E35-4634-917D-849818A3B496}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87AA31B8-7E35-4634-917D-849818A3B496}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54842B99-E4A6-4427-A353-F6A6A41F5537}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54842B99-E4A6-4427-A353-F6A6A41F5537}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54842B99-E4A6-4427-A353-F6A6A41F5537}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54842B99-E4A6-4427-A353-F6A6A41F5537}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77825FDB-D7D0-42B2-B38A-51426958ED8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77825FDB-D7D0-42B2-B38A-51426958ED8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77825FDB-D7D0-42B2-B38A-51426958ED8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77825FDB-D7D0-42B2-B38A-51426958ED8A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

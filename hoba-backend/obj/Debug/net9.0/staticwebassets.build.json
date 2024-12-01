@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "DZKIM12cE3j3dXamhcDqMNVBIKQ3M1Ui253MGxqYXCI=",
+  "Source": "hoba-backend",
+  "BasePath": "_content/hoba-backend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
