@@ -6,6 +6,7 @@ using HobaBackend.Auth.Responses;
 using HobaBackend.Auth.Utilities;
 using HobaBackend.DB.Entities;
 using HobaBackend.DB.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace HobaBackend.Auth;
@@ -51,7 +52,7 @@ public class FirebaseAuthService : IAuthService
             DisplayName = $"{user.FirstName} {user.LastName}",
             Disabled = false,
         };
-        
+
         try
         {
             var userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(args, cancellationToken);
@@ -64,7 +65,7 @@ public class FirebaseAuthService : IAuthService
 
             var createdHobaUser = await _userRepository.CreateUser(hobaUser, cancellationToken);
             await _userRepository.SaveChangesAsync(cancellationToken);
-            
+
             // Send email immediately or using events
 
             return new CreateUserResponse
@@ -78,6 +79,11 @@ public class FirebaseAuthService : IAuthService
             };
         }
         catch (FirebaseAuthException ex)
+        {
+            _logger.LogInformation(ex, "Failed to create user with email: {Email}", args.Email);
+            return default;
+        }
+        catch (DbUpdateException ex)
         {
             _logger.LogInformation(ex, "Failed to create user with email: {Email}", args.Email);
             return default;
