@@ -17,6 +17,12 @@ public class AppDbContext : DbContext
         {
             entity.Property(user => user.Id)
                 .HasIdentityOptions(minValue: 10_000);
+
+            entity.HasIndex(user => user.Username)
+                .IsUnique();
+
+            entity.HasIndex(user => user.Uid)
+                .IsUnique();
         });
 
         base.OnModelCreating(modelBuilder);
