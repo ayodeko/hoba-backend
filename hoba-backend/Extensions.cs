@@ -1,6 +1,6 @@
-﻿using Auth;
+﻿using HobaBackend.Auth;
 
-namespace WebApplication3;
+namespace HobaBackend;
 
 public static class Extensions
 {

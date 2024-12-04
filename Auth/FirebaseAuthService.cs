@@ -2,7 +2,7 @@
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
 
-namespace Auth;
+namespace HobaBackend.Auth;
 
 public class FirebaseAuthService : IAuthService
 {

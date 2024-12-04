@@ -1,4 +1,4 @@
-﻿namespace Auth;
+﻿namespace HobaBackend.Auth;
 
 public class UpdateAuthUser
 {
