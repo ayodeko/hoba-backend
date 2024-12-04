@@ -55,11 +55,11 @@ public class FirebaseAuthService : IAuthService
 
         try
         {
-            var userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(args, cancellationToken);
+            var firebaseUser = await FirebaseAuth.DefaultInstance.CreateUserAsync(args, cancellationToken);
 
             var hobaUser = new HobaUser
             {
-                Uid = userRecord.Uid,
+                Uid = firebaseUser.Uid,
                 Username = user.Username
             };
 
@@ -71,8 +71,9 @@ public class FirebaseAuthService : IAuthService
             return new CreateUserResponse
             {
                 Username = createdHobaUser.Username,
-                Email = userRecord.Email,
-                FullName = userRecord.DisplayName,
+                Email = firebaseUser.Email,
+                FullName = firebaseUser.DisplayName,
+                PhoneNumber = firebaseUser.PhoneNumber,
                 Id = createdHobaUser.Id,
                 Uid = createdHobaUser.Uid,
                 GeneratedPassword = generatedPassword
@@ -110,18 +111,64 @@ public class FirebaseAuthService : IAuthService
         throw new NotImplementedException();
     }
 
-    public async Task<IUserInfo?> GetUserByEmail(string email)
+    public async Task<GetUserResponse?> GetByUsername(string username,
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            var user = await FirebaseAuth.DefaultInstance.GetUserByEmailAsync(email);
+            var customUser = await _userRepository.GetUserByUsername(username, cancellationToken);
 
-            return user;
+            if (customUser is null)
+            {
+                return default;
+            }
+
+            var firebaseUser = await FirebaseAuth.DefaultInstance.GetUserAsync(customUser.Uid, cancellationToken);
+
+            return new GetUserResponse
+            {
+                Email = firebaseUser.Email,
+                FullName = firebaseUser.DisplayName,
+                Id = customUser.Id,
+                PhoneNumber = firebaseUser.PhoneNumber,
+                Uid = firebaseUser.Uid,
+                Username = customUser.Username
+            };
         }
         catch (FirebaseAuthException ex)
         {
-            _logger.LogInformation(ex, "Failed to get user by email");
-            return null;
+            _logger.LogInformation(ex, "Failed to get user by username");
+            return default;
+        }
+    }
+
+    public async Task<GetUserResponse?> GetByUserId(int userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var customUser = await _userRepository.GetUserByUserId(userId, cancellationToken);
+
+            if (customUser is null)
+            {
+                return default;
+            }
+
+            var firebaseUser = await FirebaseAuth.DefaultInstance.GetUserAsync(customUser.Uid, cancellationToken);
+
+            return new GetUserResponse
+            {
+                Email = firebaseUser.Email,
+                FullName = firebaseUser.DisplayName,
+                Id = customUser.Id,
+                PhoneNumber = firebaseUser.PhoneNumber,
+                Uid = firebaseUser.Uid,
+                Username = customUser.Username
+            };
+        }
+        catch (FirebaseAuthException ex)
+        {
+            _logger.LogInformation(ex, "Failed to get user by username");
+            return default;
         }
     }
 }
