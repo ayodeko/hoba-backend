@@ -1,57 +1,93 @@
 ﻿using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
+using HobaBackend.Auth.Requests;
+using HobaBackend.Auth.Utilities;
+using Microsoft.Extensions.Logging;
 
-namespace Auth;
+namespace HobaBackend.Auth;
 
 public class FirebaseAuthService : IAuthService
 {
-    public void init()
+    private readonly ILogger _logger;
+    private readonly IPasswordGenerator _passwordGenerator;
+
+    public FirebaseAuthService(ILogger<FirebaseAuthService> logger, IPasswordGenerator passwordGenerator)
+    {
+        _logger = logger;
+        _passwordGenerator = passwordGenerator;
+    }
+
+    public void Init()
     {
         string CredentialEnvironmentVariable = "GOOGLE_APPLICATION_CREDENTIALS";
         var envariable = Environment.GetEnvironmentVariable(CredentialEnvironmentVariable);
         var gCred = GoogleCredential.GetApplicationDefault();
-        FirebaseApp.Create(new AppOptions()
+        FirebaseApp.Create(new AppOptions
         {
             Credential = gCred,
             ProjectId = "hoba-backend",
         });
     }
 
-    public async void createUser(CreateAuthUser user)
+    public async Task<IUserInfo?> CreateUser(CreateAuthUser user)
     {
-        //Testing user creation
-        UserRecordArgs args = new UserRecordArgs()
+        var generatedPassword = _passwordGenerator.Generate();
+
+        UserRecordArgs args = new UserRecordArgs
         {
-            Email = user.email,
+            Email = user.Email,
             EmailVerified = false,
-            PhoneNumber = user.phoneNumber,
-            Password = user.password,
-            DisplayName = $"{user.firstName} {user.lastName}",
+            PhoneNumber = user.PhoneNumber,
+            Password = generatedPassword,
+            DisplayName = $"{user.FirstName} {user.LastName}",
             Disabled = false,
         };
-        UserRecord userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(args);
-        // See the UserRecord reference doc for the contents of userRecord.
-        Console.WriteLine($"Successfully created new user: {userRecord.Uid}");
+        try
+        {
+            UserRecord? userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(args);
+
+            return userRecord;
+        }
+        catch (FirebaseAuthException ex)
+        {
+            _logger.LogInformation(ex, "Failed to create user with email: {Email}", args.Email);
+            return null;
+        }
     }
 
-    public void updateUser(UpdateAuthUser user)
+    public Task UpdateUser(UpdateAuthUser user)
     {
         throw new NotImplementedException();
     }
 
-    public void changePassword(string userId, string newPassword)
+    public Task ChangePassword(string userId, string newPassword)
     {
         throw new NotImplementedException();
     }
 
-    public void signInWithEmail(string email, string password)
+    public Task SignInWithEmail(string email, string password)
     {
         throw new NotImplementedException();
     }
 
-    public void signInWithUsername(string username, string password)
+    public Task SignInWithUsername(string username, string password)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<IUserInfo?> GetUserByEmail(string email)
+    {
+        try
+        {
+            var user = await FirebaseAuth.DefaultInstance.GetUserByEmailAsync(email);
+
+            return user;
+        }
+        catch (FirebaseAuthException ex)
+        {
+            _logger.LogInformation(ex, "Failed to get user by email");
+            return null;
+        }
     }
 }
