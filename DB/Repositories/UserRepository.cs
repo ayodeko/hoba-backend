@@ -26,6 +26,13 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<HobaUser?> GetUserByUserId(int userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .Where(user => user.Id == userId)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);

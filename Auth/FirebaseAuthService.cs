@@ -111,7 +111,7 @@ public class FirebaseAuthService : IAuthService
         throw new NotImplementedException();
     }
 
-    public async Task<GetUserResponse?> GetUserByUsername(string username,
+    public async Task<GetUserResponse?> GetByUsername(string username,
         CancellationToken cancellationToken = default)
     {
         try
@@ -138,7 +138,37 @@ public class FirebaseAuthService : IAuthService
         catch (FirebaseAuthException ex)
         {
             _logger.LogInformation(ex, "Failed to get user by username");
-            return null;
+            return default;
+        }
+    }
+
+    public async Task<GetUserResponse?> GetByUserId(int userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var customUser = await _userRepository.GetUserByUserId(userId, cancellationToken);
+
+            if (customUser is null)
+            {
+                return default;
+            }
+
+            var firebaseUser = await FirebaseAuth.DefaultInstance.GetUserAsync(customUser.Uid, cancellationToken);
+
+            return new GetUserResponse
+            {
+                Email = firebaseUser.Email,
+                FullName = firebaseUser.DisplayName,
+                Id = customUser.Id,
+                PhoneNumber = firebaseUser.PhoneNumber,
+                Uid = firebaseUser.Uid,
+                Username = customUser.Username
+            };
+        }
+        catch (FirebaseAuthException ex)
+        {
+            _logger.LogInformation(ex, "Failed to get user by username");
+            return default;
         }
     }
 }
