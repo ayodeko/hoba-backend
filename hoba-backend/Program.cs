@@ -2,6 +2,7 @@ using HobaBackend;
 using HobaBackend.Auth;
 using HobaBackend.Auth.Utilities;
 using HobaBackend.DB;
+using HobaBackend.DB.Repositories;
 using HobaBackend.Endpoints;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -11,10 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<IAuthService, FirebaseAuthService>();
 builder.Services.AddSingleton<IPasswordGenerator, PasswordGenerator>();
-var configuration = builder.Configuration;
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseNpgsql(configuration.GetConnectionString("DbConnection"),
-        x => x.MigrationsAssembly("HobaDB")));
+        opt.UseNpgsql(builder.Configuration.GetConnectionString("DbConnection")),
+    contextLifetime: ServiceLifetime.Singleton);
 
 var app = builder.Build();
 
@@ -22,6 +23,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+    await app.ApplyMigrations();
 }
 
 app.UseHttpsRedirection();

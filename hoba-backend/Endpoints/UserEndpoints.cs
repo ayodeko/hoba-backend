@@ -15,19 +15,20 @@ public static class UserEndpoints
 
     private static void MapCreateUser(RouteGroupBuilder group)
     {
-        group.MapPost("/", async (CreateAuthUser createUserRequest, IAuthService authService) =>
-        {
-            var user = await authService.CreateUser(createUserRequest);
+        group.MapPost("/",
+            async (CreateAuthUser createUserRequest, IAuthService authService, CancellationToken cancellationToken) =>
+            {
+                var user = await authService.CreateUser(createUserRequest, cancellationToken);
 
-            return user is not null
-                ? Results.CreatedAtRoute("GetByEmail", new { user.Email }, user)
-                : Results.BadRequest($"Failed to create user with email: {createUserRequest.Email}");
-        });
+                return user is not null
+                    ? Results.CreatedAtRoute("GetByEmail", new { user.Email }, user)
+                    : Results.BadRequest($"Failed to create user with email: {createUserRequest.Email}");
+            });
     }
 
     private static void MapGetUserByEmail(RouteGroupBuilder group)
     {
-        group.MapGet("{email}", async (string email, IAuthService authService) =>
+        group.MapGet("{email}", async (string email, IAuthService authService, CancellationToken cancellationToken) =>
             {
                 var user = await authService.GetUserByEmail(email);
 

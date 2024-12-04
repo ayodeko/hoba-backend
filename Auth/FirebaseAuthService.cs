@@ -2,7 +2,10 @@
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
 using HobaBackend.Auth.Requests;
+using HobaBackend.Auth.Responses;
 using HobaBackend.Auth.Utilities;
+using HobaBackend.DB.Entities;
+using HobaBackend.DB.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace HobaBackend.Auth;
@@ -11,11 +14,16 @@ public class FirebaseAuthService : IAuthService
 {
     private readonly ILogger _logger;
     private readonly IPasswordGenerator _passwordGenerator;
+    private readonly IUserRepository _userRepository;
 
-    public FirebaseAuthService(ILogger<FirebaseAuthService> logger, IPasswordGenerator passwordGenerator)
+    public FirebaseAuthService(
+        ILogger<FirebaseAuthService> logger,
+        IPasswordGenerator passwordGenerator,
+        IUserRepository userRepository)
     {
         _logger = logger;
         _passwordGenerator = passwordGenerator;
+        _userRepository = userRepository;
     }
 
     public void Init()
@@ -30,11 +38,11 @@ public class FirebaseAuthService : IAuthService
         });
     }
 
-    public async Task<IUserInfo?> CreateUser(CreateAuthUser user)
+    public async Task<CreateUserResponse?> CreateUser(CreateAuthUser user, CancellationToken cancellationToken)
     {
         var generatedPassword = _passwordGenerator.Generate();
 
-        UserRecordArgs args = new UserRecordArgs
+        var args = new UserRecordArgs
         {
             Email = user.Email,
             EmailVerified = false,
@@ -43,16 +51,36 @@ public class FirebaseAuthService : IAuthService
             DisplayName = $"{user.FirstName} {user.LastName}",
             Disabled = false,
         };
+        
         try
         {
-            UserRecord? userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(args);
+            var userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(args, cancellationToken);
 
-            return userRecord;
+            var hobaUser = new HobaUser
+            {
+                Uid = userRecord.Uid,
+                Username = user.Username
+            };
+
+            var createdHobaUser = await _userRepository.CreateUser(hobaUser, cancellationToken);
+            await _userRepository.SaveChangesAsync(cancellationToken);
+            
+            // Send email immediately or using events
+
+            return new CreateUserResponse
+            {
+                Username = createdHobaUser.Username,
+                Email = userRecord.Email,
+                FullName = userRecord.DisplayName,
+                Id = createdHobaUser.Id,
+                Uid = createdHobaUser.Uid,
+                GeneratedPassword = generatedPassword
+            };
         }
         catch (FirebaseAuthException ex)
         {
             _logger.LogInformation(ex, "Failed to create user with email: {Email}", args.Email);
-            return null;
+            return default;
         }
     }
 
