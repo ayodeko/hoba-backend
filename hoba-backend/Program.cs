@@ -9,12 +9,13 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var conString = builder.Configuration.GetConnectionString("NeonConnection");
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<IAuthService, FirebaseAuthService>();
 builder.Services.AddSingleton<IPasswordGenerator, PasswordGenerator>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddDbContext<AppDbContext>(opt =>
-        opt.UseNpgsql(builder.Configuration.GetConnectionString("DbConnection")),
+        opt.UseNpgsql(conString),
     contextLifetime: ServiceLifetime.Singleton);
 
 var app = builder.Build();
