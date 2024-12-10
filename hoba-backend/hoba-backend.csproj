@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>HobaBackend</RootNamespace>
         <UserSecretsId>b0bf502d-b0ef-44f8-9908-8028e0c6aff3</UserSecretsId>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
