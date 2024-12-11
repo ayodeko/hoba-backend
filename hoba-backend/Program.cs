@@ -33,4 +33,7 @@ app.UseCustomAuth();
 
 app.MapUserEndpoints();
 
+// Redirect to Scalar OpenAPI docs
+app.MapGet("/", () => Results.LocalRedirect("/scalar/v1"));
+
 await app.RunAsync();
