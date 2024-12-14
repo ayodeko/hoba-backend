@@ -9,22 +9,25 @@ using HobaBackend.DB.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace HobaBackend.Auth;
+namespace HobaBackend.Auth.Services;
 
 public class FirebaseAuthService : IAuthService
 {
     private readonly ILogger _logger;
     private readonly IPasswordGenerator _passwordGenerator;
     private readonly IUserRepository _userRepository;
+    private readonly IEmailSender _emailSender;
 
     public FirebaseAuthService(
         ILogger<FirebaseAuthService> logger,
         IPasswordGenerator passwordGenerator,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IEmailSender emailSender)
     {
         _logger = logger;
         _passwordGenerator = passwordGenerator;
         _userRepository = userRepository;
+        _emailSender = emailSender;
         Init();
     }
 
@@ -67,7 +70,7 @@ public class FirebaseAuthService : IAuthService
             var createdHobaUser = await _userRepository.CreateUser(hobaUser, cancellationToken);
             await _userRepository.SaveChangesAsync(cancellationToken);
 
-            // Send email immediately or using events
+            await _emailSender.SendPasswordEmail(user.Email, generatedPassword);
 
             return new CreateUserResponse
             {

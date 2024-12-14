@@ -1,5 +1,5 @@
-using HobaBackend.Auth;
 using HobaBackend.Auth.Requests;
+using HobaBackend.Auth.Services;
 
 namespace HobaBackend.Endpoints;
 
@@ -22,7 +22,7 @@ public static class UserEndpoints
                 var user = await authService.CreateUser(createUserRequest, cancellationToken);
 
                 return user is not null
-                    ? Results.CreatedAtRoute("GetByUsername", new { user.Email }, user)
+                    ? Results.CreatedAtRoute("GetByUsername", new { user.Username }, user)
                     : Results.BadRequest($"Failed to create user with email: {createUserRequest.Email}");
             });
     }
