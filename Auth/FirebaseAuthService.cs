@@ -25,6 +25,7 @@ public class FirebaseAuthService : IAuthService
         _logger = logger;
         _passwordGenerator = passwordGenerator;
         _userRepository = userRepository;
+        Init();
     }
 
     public void Init()

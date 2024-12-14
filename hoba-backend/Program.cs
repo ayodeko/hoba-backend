@@ -29,7 +29,7 @@ app.MapOpenApi();
 app.MapScalarApiReference();
 
 app.UseHttpsRedirection();
-app.UseCustomAuth();
+//app.UseCustomAuth();
 
 app.MapUserEndpoints();
 
