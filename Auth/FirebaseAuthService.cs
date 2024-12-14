@@ -29,9 +29,9 @@ public class FirebaseAuthService : IAuthService
 
     public void Init()
     {
-        string CredentialEnvironmentVariable = "GOOGLE_APPLICATION_CREDENTIALS";
-        var envariable = Environment.GetEnvironmentVariable(CredentialEnvironmentVariable);
-        var gCred = GoogleCredential.GetApplicationDefault();
+        const string CredentialEnvironmentVariable = "HOBA_FIREBASE_CREDENTIALS_JSON";
+        var jsonFirebaseCredential = Environment.GetEnvironmentVariable(CredentialEnvironmentVariable);
+        var gCred = GoogleCredential.FromJson(jsonFirebaseCredential);
         FirebaseApp.Create(new AppOptions
         {
             Credential = gCred,
