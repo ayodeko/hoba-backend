@@ -1,4 +1,4 @@
-﻿using HobaBackend.Auth;
+﻿using HobaBackend.Auth.Services;
 using HobaBackend.DB;
 using Microsoft.EntityFrameworkCore;
 

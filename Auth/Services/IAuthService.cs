@@ -1,7 +1,7 @@
 ﻿using HobaBackend.Auth.Requests;
 using HobaBackend.Auth.Responses;
 
-namespace HobaBackend.Auth;
+namespace HobaBackend.Auth.Services;
 
 public interface IAuthService
 {
