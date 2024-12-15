@@ -8,3 +8,9 @@ public class CreateAuthUser
     public string LastName { get; init; }
     public string PhoneNumber { get; init; }
 }
+
+public class SignInAuthUser
+{
+    public string Email { get; init; }
+    public string Password { get; init; }
+}

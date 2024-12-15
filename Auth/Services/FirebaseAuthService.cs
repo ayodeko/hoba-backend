@@ -1,13 +1,17 @@
-﻿using FirebaseAdmin;
+﻿using System.Text;
+using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
+using HobaBackend.Auth.Firebase;
 using HobaBackend.Auth.Requests;
 using HobaBackend.Auth.Responses;
 using HobaBackend.Auth.Utilities;
 using HobaBackend.DB.Entities;
 using HobaBackend.DB.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace HobaBackend.Auth.Services;
 
@@ -17,17 +21,20 @@ public class FirebaseAuthService : IAuthService
     private readonly IPasswordGenerator _passwordGenerator;
     private readonly IUserRepository _userRepository;
     private readonly IEmailSender _emailSender;
+    private readonly IConfiguration config;
 
     public FirebaseAuthService(
         ILogger<FirebaseAuthService> logger,
         IPasswordGenerator passwordGenerator,
         IUserRepository userRepository,
-        IEmailSender emailSender)
+        IEmailSender emailSender,
+        IConfiguration _config)
     {
         _logger = logger;
         _passwordGenerator = passwordGenerator;
         _userRepository = userRepository;
         _emailSender = emailSender;
+        config = _config;
         Init();
     }
 
@@ -105,10 +112,41 @@ public class FirebaseAuthService : IAuthService
         throw new NotImplementedException();
     }
 
-    public Task SignInWithEmail(string email, string password)
+    private HttpClient httpClient;
+
+    public async Task<SignInUserResponse> SignInWithEmail(string email, string password, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var _signInUrl = config["FirebaseAuth:SignInUrl"];
+        var _apiKey = config["FirebaseAuth:ApiKey"];
+        var url = $"{_signInUrl}?key={_apiKey}";
+        var payload = new
+        {
+            email,
+            password,
+            returnSecureToken = true
+        };
+
+        var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+
+        httpClient = new HttpClient();
+        var httpResponse = await httpClient.PostAsync(url, content, cancellationToken);
+        httpResponse.EnsureSuccessStatusCode();
+
+        var responseBody = await httpResponse.Content.ReadAsStringAsync();
+        var firebaseResponse = JsonConvert.DeserializeObject<FirebaseSignInUserRestResponse>(responseBody);
+        _logger.LogInformation("User {email} signed in successfully! ", email);
+        _logger.LogInformation(responseBody);
+
+        return new SignInUserResponse()
+        {
+            RefreshToken = firebaseResponse.refreshToken,
+            IDToken = firebaseResponse.idToken,
+            Uid = firebaseResponse.localId,
+            FullName = firebaseResponse.displayName,
+            ExpiresIn = firebaseResponse.expiresIn
+        };
     }
+
 
     public Task SignInWithUsername(string username, string password)
     {

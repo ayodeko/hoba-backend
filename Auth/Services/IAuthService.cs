@@ -9,7 +9,7 @@ public interface IAuthService
     Task<CreateUserResponse?> CreateUser(CreateAuthUser user, CancellationToken cancellationToken = default);
     Task UpdateUser(UpdateAuthUser user);
     Task ChangePassword(string userId, string newPassword);
-    Task SignInWithEmail(string email, string password);
+    Task<SignInUserResponse> SignInWithEmail(string email, string password, CancellationToken cancellationToken = default);
     Task SignInWithUsername(string username, string password);
     Task<GetUserResponse?> GetByUsername(string username, CancellationToken cancellationToken = default);
     Task<GetUserResponse?> GetByUserId(int userId, CancellationToken cancellationToken = default);

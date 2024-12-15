@@ -10,6 +10,7 @@ public static class UserEndpoints
         var group = app.MapGroup("users");
 
         MapCreateUser(group);
+        MapSignInUser(group);
         MapGetByUsername(group);
         MapGetByUserId(group);
     }
@@ -25,6 +26,16 @@ public static class UserEndpoints
                     ? Results.CreatedAtRoute("GetByUsername", new { user.Username }, user)
                     : Results.BadRequest($"Failed to create user with email: {createUserRequest.Email}");
             });
+    }
+    private static void MapSignInUser(RouteGroupBuilder group)
+    {
+        group.MapPost("/Login",
+            async (SignInAuthUser signInAuthUser, IAuthService authService, CancellationToken cancellationToken) =>
+            {
+                var response = await authService.SignInWithEmail(signInAuthUser.Email, signInAuthUser.Password, cancellationToken);
+                return response;
+            });
+        
     }
 
     private static void MapGetByUsername(RouteGroupBuilder group)
