@@ -5,7 +5,6 @@ namespace HobaBackend.Auth.Services;
 
 public interface IAuthService
 {
-    void Init();
     Task<CreateUserResponse?> CreateUser(CreateAuthUser user, CancellationToken cancellationToken = default);
     Task UpdateUser(UpdateAuthUser user);
     Task<SignInUserResponse> ChangePassword(string idToken, string newPassword, CancellationToken cancellationToken);

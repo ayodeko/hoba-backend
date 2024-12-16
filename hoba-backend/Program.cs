@@ -13,6 +13,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddAuthServices(builder.Configuration);
 builder.Services.AddDbServices(builder.Configuration);
 builder.Services.AddHttpClient();
+builder.Services.ConfigureMassTransit(builder.Configuration);
 
 var app = builder.Build();
 
@@ -25,7 +26,6 @@ app.MapOpenApi();
 app.MapScalarApiReference();
 
 app.UseHttpsRedirection();
-//app.UseCustomAuth();
 
 app.MapUserEndpoints();
 

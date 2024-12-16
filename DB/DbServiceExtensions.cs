@@ -9,9 +9,8 @@ public static class DbServiceExtensions
 {
     public static void AddDbServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IUserRepository, UserRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddDbContext<AppDbContext>(opt => 
-                opt.UseNpgsql(configuration.GetConnectionString("NeonConnection")),
-            contextLifetime: ServiceLifetime.Singleton);
+                opt.UseNpgsql(configuration.GetConnectionString("NeonConnection")));
     }
 }
