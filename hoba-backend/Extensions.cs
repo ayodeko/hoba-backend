@@ -1,17 +1,12 @@
-﻿using HobaBackend.Auth.Services;
+﻿using HobaBackend.Auth.Messaging;
 using HobaBackend.DB;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace HobaBackend;
 
 public static class Extensions
 {
-    public static void UseCustomAuth(this WebApplication app)
-    {
-        var auth = app.Services.GetRequiredService<IAuthService>();
-        auth.Init();
-    }
-
     public static async Task ApplyMigrations(this WebApplication app)
     {
         var serviceProvider = app.Services
@@ -25,5 +20,36 @@ public static class Extensions
         {
             await authContext.Database.MigrateAsync();
         }
+    }
+
+    public static void ConfigureMassTransit(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<SqlTransportOptions>()
+            .Configure(options =>
+            {
+                options.ConnectionString = configuration.GetConnectionString("NeonConnection");
+                options.Schema = "message-broker";
+                options.AdminUsername = configuration["ConnectionStrings:AdminUsername"];
+                options.AdminPassword = configuration["ConnectionStrings:AdminPassword"];
+                options.Role = configuration["ConnectionStrings:AdminUsername"];
+            });
+
+        services.AddPostgresMigrationHostedService(options => { options.CreateDatabase = false; });
+
+        services.AddMassTransit(bus =>
+        {
+            bus.SetKebabCaseEndpointNameFormatter();
+
+            bus.AddSqlMessageScheduler();
+
+            bus.AddConsumer<UserCreatedMessageConsumer>();
+
+            bus.UsingPostgres((context, configurator) =>
+            {
+                configurator.UseSqlMessageScheduler();
+                configurator.AutoStart = true;
+                configurator.ConfigureEndpoints(context);
+            });
+        });
     }
 }

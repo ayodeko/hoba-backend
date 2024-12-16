@@ -1,14 +1,14 @@
 ﻿using System.Net.Http.Json;
-using FirebaseAdmin;
 using FirebaseAdmin.Auth;
-using Google.Apis.Auth.OAuth2;
 using HobaBackend.Auth.Firebase;
+using HobaBackend.Auth.Messaging;
 using HobaBackend.Auth.Options;
 using HobaBackend.Auth.Requests;
 using HobaBackend.Auth.Responses;
 using HobaBackend.Auth.Utilities;
 using HobaBackend.DB.Entities;
 using HobaBackend.DB.Repositories;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,37 +20,24 @@ public class FirebaseAuthService : IAuthService
     private readonly ILogger _logger;
     private readonly IPasswordGenerator _passwordGenerator;
     private readonly IUserRepository _userRepository;
-    private readonly IEmailSender _emailSender;
     private readonly HttpClient _httpClient;
     private readonly FirebaseAuthConfig _firebaseAuthConfig;
+    private readonly IPublishEndpoint _publishEndpoint;
 
     public FirebaseAuthService(
         ILogger<FirebaseAuthService> logger,
         IPasswordGenerator passwordGenerator,
         IUserRepository userRepository,
-        IEmailSender emailSender,
         HttpClient httpClient,
-        IOptions<FirebaseAuthConfig> firebaseAuthConfigOptions)
+        IOptions<FirebaseAuthConfig> firebaseAuthConfigOptions,
+        IPublishEndpoint publishEndpoint)
     {
         _logger = logger;
         _passwordGenerator = passwordGenerator;
         _userRepository = userRepository;
-        _emailSender = emailSender;
         _httpClient = httpClient;
+        _publishEndpoint = publishEndpoint;
         _firebaseAuthConfig = firebaseAuthConfigOptions.Value;
-        Init();
-    }
-
-    public void Init()
-    {
-        const string CredentialEnvironmentVariable = "HOBA_FIREBASE_CREDENTIALS_JSON";
-        var jsonFirebaseCredential = Environment.GetEnvironmentVariable(CredentialEnvironmentVariable);
-        var gCred = GoogleCredential.FromJson(jsonFirebaseCredential);
-        FirebaseApp.Create(new AppOptions
-        {
-            Credential = gCred,
-            ProjectId = "hoba-backend",
-        });
     }
 
     public async Task<CreateUserResponse?> CreateUser(CreateAuthUser user, CancellationToken cancellationToken)
@@ -80,7 +67,15 @@ public class FirebaseAuthService : IAuthService
             var createdHobaUser = await _userRepository.CreateUser(hobaUser, cancellationToken);
             await _userRepository.SaveChangesAsync(cancellationToken);
 
-            await _emailSender.SendPasswordEmail(user.Email, generatedPassword);
+            await _publishEndpoint.Publish(new UserCreatedMessage(
+                    createdHobaUser.Id,
+                    firebaseUser.Uid,
+                    createdHobaUser.Username,
+                    firebaseUser.Email,
+                    generatedPassword
+                ),
+                cancellationToken
+            );
 
             return new CreateUserResponse
             {
@@ -110,7 +105,8 @@ public class FirebaseAuthService : IAuthService
         throw new NotImplementedException();
     }
 
-    public async Task<SignInUserResponse> ChangePassword(string idToken, string newPassword, CancellationToken cancellationToken)
+    public async Task<SignInUserResponse> ChangePassword(string idToken, string newPassword,
+        CancellationToken cancellationToken)
     {
         var url = $"{_firebaseAuthConfig.ChangePasswordUrl}?key={_firebaseAuthConfig.ApiKey}";
 
