@@ -3,8 +3,11 @@ using HobaBackend.Auth;
 using HobaBackend.DB;
 using HobaBackend.Endpoints;
 using Scalar.AspNetCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, loggerConfig) => { loggerConfig.ReadFrom.Configuration(context.Configuration); });
 
 builder.Services.AddOpenApi();
 builder.Services.AddAuthServices(builder.Configuration);
