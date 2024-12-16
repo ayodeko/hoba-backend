@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddAuthServices(builder.Configuration);
 builder.Services.AddDbServices(builder.Configuration);
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
