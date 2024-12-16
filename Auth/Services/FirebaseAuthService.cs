@@ -110,9 +110,32 @@ public class FirebaseAuthService : IAuthService
         throw new NotImplementedException();
     }
 
-    public Task ChangePassword(string userId, string newPassword)
+    public async Task<SignInUserResponse> ChangePassword(string idToken, string newPassword, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var url = $"{_firebaseAuthConfig.ChangePasswordUrl}?key={_firebaseAuthConfig.ApiKey}";
+
+        var payload = new
+        {
+            idToken,
+            password = newPassword,
+            returnSecureToken = true
+        };
+
+        var response = await _httpClient.PostAsJsonAsync(url, payload, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var firebaseResponse =
+            await response
+                .Content
+                .ReadFromJsonAsync<FirebaseChangePasswordRestResponse>(cancellationToken);
+
+        return new SignInUserResponse
+        {
+            RefreshToken = firebaseResponse.refreshToken,
+            IDToken = firebaseResponse.idToken,
+            Uid = firebaseResponse.localId,
+            ExpiresIn = firebaseResponse.expiresIn
+        };
     }
 
     public async Task<SignInUserResponse> SignInWithEmail(string email, string password,
