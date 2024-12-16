@@ -13,6 +13,7 @@ public static class UserEndpoints
         MapSignInUser(group, app.Logger);
         MapGetByUsername(group);
         MapGetByUserId(group);
+        MapChangeUserPassword(group, app.Logger);
     }
 
     private static void MapCreateUser(RouteGroupBuilder group)
@@ -73,5 +74,29 @@ public static class UserEndpoints
                         : Results.NotFound($"No one registered with id={userId}");
                 })
             .WithName("GetByUserId");
+    }
+
+    private static void MapChangeUserPassword(RouteGroupBuilder group, ILogger appLogger)
+    {
+        group.MapPost("/change-password",
+            async (ChangePasswordRequest changePasswordRequest, IAuthService authService,
+                CancellationToken cancellationToken) =>
+            {
+                try
+                {
+                    var response = await authService.ChangePassword(
+                        changePasswordRequest.IdToken,
+                        changePasswordRequest.NewPassword,
+                        cancellationToken
+                    );
+                    return Results.Ok(response);
+                }
+                catch (HttpRequestException ex)
+                {
+                    appLogger.LogError(ex, "Unable to change password with exception message: {ExceptionMessage}",
+                        ex.Message);
+                    return Results.BadRequest("Unable to change password. Please check the idToken");
+                }
+            });
     }
 }
