@@ -1,17 +1,17 @@
-﻿using System.Text;
+﻿using System.Net.Http.Json;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
 using HobaBackend.Auth.Firebase;
+using HobaBackend.Auth.Options;
 using HobaBackend.Auth.Requests;
 using HobaBackend.Auth.Responses;
 using HobaBackend.Auth.Utilities;
 using HobaBackend.DB.Entities;
 using HobaBackend.DB.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Options;
 
 namespace HobaBackend.Auth.Services;
 
@@ -21,20 +21,23 @@ public class FirebaseAuthService : IAuthService
     private readonly IPasswordGenerator _passwordGenerator;
     private readonly IUserRepository _userRepository;
     private readonly IEmailSender _emailSender;
-    private readonly IConfiguration config;
+    private readonly HttpClient _httpClient;
+    private readonly FirebaseAuthConfig _firebaseAuthConfig;
 
     public FirebaseAuthService(
         ILogger<FirebaseAuthService> logger,
         IPasswordGenerator passwordGenerator,
         IUserRepository userRepository,
         IEmailSender emailSender,
-        IConfiguration _config)
+        HttpClient httpClient,
+        IOptions<FirebaseAuthConfig> firebaseAuthConfigOptions)
     {
         _logger = logger;
         _passwordGenerator = passwordGenerator;
         _userRepository = userRepository;
         _emailSender = emailSender;
-        config = _config;
+        _httpClient = httpClient;
+        _firebaseAuthConfig = firebaseAuthConfigOptions.Value;
         Init();
     }
 
@@ -112,13 +115,10 @@ public class FirebaseAuthService : IAuthService
         throw new NotImplementedException();
     }
 
-    private HttpClient httpClient;
-
-    public async Task<SignInUserResponse> SignInWithEmail(string email, string password, CancellationToken cancellationToken)
+    public async Task<SignInUserResponse> SignInWithEmail(string email, string password,
+        CancellationToken cancellationToken)
     {
-        var _signInUrl = config["FirebaseAuth:SignInUrl"];
-        var _apiKey = config["FirebaseAuth:ApiKey"];
-        var url = $"{_signInUrl}?key={_apiKey}";
+        var url = $"{_firebaseAuthConfig.SignInUrl}?key={_firebaseAuthConfig.ApiKey}";
         var payload = new
         {
             email,
@@ -126,18 +126,14 @@ public class FirebaseAuthService : IAuthService
             returnSecureToken = true
         };
 
-        var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-
-        httpClient = new HttpClient();
-        var httpResponse = await httpClient.PostAsync(url, content, cancellationToken);
+        var httpResponse = await _httpClient.PostAsJsonAsync(url, payload, cancellationToken);
         httpResponse.EnsureSuccessStatusCode();
 
-        var responseBody = await httpResponse.Content.ReadAsStringAsync();
-        var firebaseResponse = JsonConvert.DeserializeObject<FirebaseSignInUserRestResponse>(responseBody);
-        _logger.LogInformation("User {email} signed in successfully! ", email);
-        _logger.LogInformation(responseBody);
+        var firebaseResponse = await httpResponse
+            .Content
+            .ReadFromJsonAsync<FirebaseSignInUserRestResponse>(cancellationToken);
 
-        return new SignInUserResponse()
+        return new SignInUserResponse
         {
             RefreshToken = firebaseResponse.refreshToken,
             IDToken = firebaseResponse.idToken,

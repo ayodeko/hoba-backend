@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mail;
+using HobaBackend.Auth.Options;
 using HobaBackend.Auth.Services;
 using HobaBackend.Auth.Utilities;
 using Microsoft.Extensions.Configuration;
@@ -14,6 +15,7 @@ public static class AuthServiceExtensions
         services.AddSingleton<IAuthService, FirebaseAuthService>();
         services.AddSingleton<IPasswordGenerator, PasswordGenerator>();
         services.AddSingleton<IEmailSender, EmailSender>();
+        services.ConfigureOptions<ConfigureFirebaseAuth>();
 
         services.AddFluentEmail(configuration["EmailCred:SenderEmail"], configuration["EmailCred:DefaultName"])
             .AddRazorRenderer()

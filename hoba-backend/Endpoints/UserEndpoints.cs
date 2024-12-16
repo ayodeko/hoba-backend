@@ -10,14 +10,14 @@ public static class UserEndpoints
         var group = app.MapGroup("users");
 
         MapCreateUser(group);
-        MapSignInUser(group);
+        MapSignInUser(group, app.Logger);
         MapGetByUsername(group);
         MapGetByUserId(group);
     }
 
     private static void MapCreateUser(RouteGroupBuilder group)
     {
-        group.MapPost("/",
+        group.MapPost("/register",
             async (CreateAuthUser createUserRequest, IAuthService authService, CancellationToken cancellationToken) =>
             {
                 var user = await authService.CreateUser(createUserRequest, cancellationToken);
@@ -27,15 +27,24 @@ public static class UserEndpoints
                     : Results.BadRequest($"Failed to create user with email: {createUserRequest.Email}");
             });
     }
-    private static void MapSignInUser(RouteGroupBuilder group)
+
+    private static void MapSignInUser(RouteGroupBuilder group, ILogger appLogger)
     {
-        group.MapPost("/Login",
+        group.MapPost("/login",
             async (SignInAuthUser signInAuthUser, IAuthService authService, CancellationToken cancellationToken) =>
             {
-                var response = await authService.SignInWithEmail(signInAuthUser.Email, signInAuthUser.Password, cancellationToken);
-                return response;
+                try
+                {
+                    var response = await authService.SignInWithEmail(signInAuthUser.Email, signInAuthUser.Password,
+                        cancellationToken);
+                    return Results.Ok(response);
+                }
+                catch (HttpRequestException ex)
+                {
+                    appLogger.LogError(ex, "Unable to login with exception message: {ExceptionMessage}", ex.Message);
+                    return Results.BadRequest("Unable to login. Please check credentials");
+                }
             });
-        
     }
 
     private static void MapGetByUsername(RouteGroupBuilder group)
